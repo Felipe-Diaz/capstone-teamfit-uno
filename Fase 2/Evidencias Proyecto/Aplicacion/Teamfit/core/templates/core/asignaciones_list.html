@@ -1,0 +1,217 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block titlePage %}
+Teamfit - Proyectos a Asignar Recursos
+{% endblock titlePage %}
+{% block content %}
+
+<div class="container mt-5">
+
+    <h1 class="text-center mb-5" style="margin-top: 70px;">Asignaciones de Recursos</h1>
+
+    <!-- Spinner para mostrar mientras se procesan solicitudes -->
+    <div id="loading-spinner" style="display: none; text-align: center; margin-top: 20px;">
+        <img src="{% static 'img/spinner.gif' %}" alt="Cargando..." style="width: 50px;">
+    </div>
+
+    <!-- Tabla de horas agrupadas por rol -->
+    <div class="table-container mb-5">
+        <h2 class="table-title text-center mb-3">Horas Totales por Rol y Semana</h2>
+        <table id="proyectosTable" class="table table-striped table-bordered display nowrap" style="width:100%">
+            <thead class="table-header">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Rol</th>
+                    <th>Semana</th>
+                    <th>Total Horas</th>
+                </tr>
+            </thead>
+        </table>
+        <!-- Botones de descarga -->
+        <div class="d-flex justify-content-end mt-2" style="margin-bottom: 70px;">
+            <a href="{% url 'generar_reporte' %}?formato=excel" class="btn btn-outline-success">Descargar Excel</a>
+        </div>
+    </div>
+
+    <!-- Tabla de horas agrupadas por proyecto -->
+    <div class="table-container mb-5">
+        <h2 class="table-title text-center mb-3">Horas Totales por Proyecto y Semana</h2>
+        <table id="totalesTable" class="table table-striped table-bordered display nowrap" style="width:100%">
+            <thead class="table-header">
+                <tr>
+                    <th>Proyecto</th>
+                    <th>Semana</th>
+                    <th>Total Horas</th>
+                </tr>
+            </thead>
+        </table>
+        <!-- Botones de descarga -->
+        <div class="d-flex justify-content-end mt-3">
+            <a href="{% url 'generar_excel_recursos' %}" class="btn btn-primary">Descargar Excel</a>
+
+        </div>
+    </div>
+
+    <!-- Reporte de recursos (mantener sin cambios) -->
+    <div class="table-container mb-5">
+        <h2 class="table-title text-center mb-3">Asignaciones</h2>
+        <table id="asignacionesTable" class="table table-striped table-bordered display nowrap" style="width:100%">
+            <thead class="table-header">
+                <tr>
+                    <th>Rol</th>
+                    <th>Semana</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+        </table>
+        <!-- Botones de descarga -->
+        <div class="d-flex justify-content-end mt-3">
+            <a href="{% url 'generar_reporte2' %}?formato=excel" class="btn btn-outline-success">Descargar Excel</a>
+        </div>
+    </div>
+
+    <!-- Contenedor para botones -->
+    <div class="d-flex justify-content-center mb-5 gap-3">
+        <!-- Botón para ejecutar la asignación -->
+        <form id="asignacionForm" method="post" action="{% url 'ejecutar_asignacion' %}" class="mr-3">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Ejecutar Asignación de Recursos</button>
+        </form>
+
+        <!-- Botón para eliminar asignaciones -->
+        <form id="eliminarAsignacionesForm" method="post" action="{% url 'eliminar_asignaciones' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Eliminar Asignaciones Actuales</button>
+        </form>
+    </div>
+
+    <!-- Contenedor para mensajes -->
+    <div id="mensaje" class="alert text-center" style="display: none;"></div>
+</div>
+
+<!-- jQuery y DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.2.7/js/dataTables.responsive.min.js"></script>
+
+<!-- Inicialización de DataTables con AJAX -->
+<script>
+    $(document).ready(function() {
+        // Inicialización de las tablas con DataTables
+        const proyectosTable = $('#proyectosTable').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "responsive": true,
+            "ajax": {
+                "url": "{% url 'horas_por_recurso_data' %}",
+                "type": "GET"
+            },
+            "columns": [
+                { "data": "recurso__nombre" },
+                { "data": "recurso__rol" },
+                { "data": "semana" },
+                { "data": "total_horas_rol" }
+            ],
+            "order": [[1, 'asc']],
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.11.3/i18n/es_es.json"
+            }
+        });
+
+        const totalesTable = $('#totalesTable').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "responsive": true,
+            "ajax": {
+                "url": "{% url 'horas_por_proyecto_data' %}",
+                "type": "GET"
+            },
+            "columns": [
+                { "data": "proyecto__nombre" },
+                { "data": "semana" },
+                { "data": "total_horas_proyecto" }
+            ],
+            "order": [[1, 'asc']],
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.11.3/i18n/es_es.json"
+            }
+        });
+
+        const asignacionesTable = $('#asignacionesTable').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "responsive": true,
+            "ajax": {
+                "url": "{% url 'asignaciones_data' %}",
+                "type": "GET"
+            },
+            "columns": [
+                { "data": "recurso__rol" },
+                { "data": "semana" },
+                { "data": "total_horas" }
+            ],
+            "order": [[2, 'asc']],
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.11.3/i18n/es_es.json"
+            }
+        });
+
+        // Evitar el envío normal del formulario y usar AJAX
+        $('#asignacionForm').on('submit', function(event) {
+            event.preventDefault(); // Prevenir la recarga de página
+            $("#loading-spinner").show(); // Mostrar spinner de carga
+
+            // Enviar los datos del formulario con AJAX
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: $(this).serialize(), // Serializar el formulario para enviar datos
+                success: function(response) {
+                    $("#loading-spinner").hide(); // Ocultar spinner de carga
+                    $('#mensaje').removeClass().addClass('alert alert-success').html('Asignación de recursos realizada exitosamente.').show();
+                    
+                    // Recargar todas las tablas con la nueva información
+                    proyectosTable.ajax.reload(null, false);  // Recarga la tabla de proyectos sin reiniciar la paginación
+                    totalesTable.ajax.reload(null, false);    // Recarga la tabla de totales
+                    asignacionesTable.ajax.reload(null, false); // Recarga la tabla de asignaciones
+                },
+                error: function(xhr) {
+                    $("#loading-spinner").hide(); // Ocultar spinner de carga
+                    $('#mensaje').removeClass().addClass('alert alert-danger').html('Error al ejecutar la asignación: ' + xhr.responseText).show();
+                }
+            });
+        });
+
+        // Manejar el formulario de eliminación de asignaciones
+        $('#eliminarAsignacionesForm').on('submit', function(event) {
+            event.preventDefault(); // Prevenir la recarga de página
+            $("#loading-spinner").show(); // Mostrar spinner de carga
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    $("#loading-spinner").hide();
+                    $('#mensaje').removeClass().addClass('alert alert-success').html('Asignaciones eliminadas exitosamente.').show();
+                    
+                    // Recargar todas las tablas con la nueva información
+                    proyectosTable.ajax.reload(null, false);
+                    totalesTable.ajax.reload(null, false);
+                    asignacionesTable.ajax.reload(null, false);
+                },
+                error: function(xhr) {
+                    $("#loading-spinner").hide();
+                    $('#mensaje').removeClass().addClass('alert alert-danger').html('Error al eliminar las asignaciones: ' + xhr.responseText).show();
+                }
+            });
+        });
+
+        // Ocultar el mensaje automáticamente después de unos segundos
+        setTimeout(function() {
+            $('#mensaje').fadeOut('slow');
+        }, 5000); // Oculta después de 5 segundos
+    });
+</script>
+{% endblock content %}
