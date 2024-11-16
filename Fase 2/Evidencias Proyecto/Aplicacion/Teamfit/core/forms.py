@@ -6,7 +6,7 @@ from django.forms import ModelForm, fields, Form
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from pkg_resources import require
-from .models import Ventas, Disponibilidad, PerfilUsuario
+from .models import PerfilUsuario
 from datetime import date, timedelta
 from django.core.exceptions import ValidationError
 from django import forms
@@ -16,37 +16,6 @@ def validar_longitud_maxima(value):
     if len(str(value)) > 12:
         raise ValidationError('El número no puede tener más de 12 dígitos.')
 
-
-#Formulario de Ventas
-class VentasForm(forms.Form):
-    TIPOS_PROYECTO = [
-        ("na", 'Seleccione Tipo de Proyecto'),
-        ('1', 'Tipo 1'),
-        ('2', 'Tipo 2'),
-        ('na', 'No Aplica'),
-    ]
-
-    idTipoProyecto = forms.ChoiceField(
-        required=False,
-        choices=TIPOS_PROYECTO,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        label="Tipo de Proyecto"
-    )
-
-    fecha = forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        label="Fecha",
-    )
-
-    class Meta:
-        fields = ['idTipoProyecto', 'fecha']
-
-    def clean_fecha(self):
-        fecha = self.cleaned_data['fecha']
-        if fecha < date.today() + timedelta(days=1):
-            raise forms.ValidationError("La fecha debe ser desde mañana en adelante.")
-        return fecha
 
 #Formulario de Disponibilidad
 ##Idea: Calcular las semanas en base a las fechas que se utilizarán.
@@ -304,6 +273,8 @@ CATEGORIAS_MAPPING = {
     'F2': 'actualizacion_permisos',
     'G': 'modelo',
     'G1': 'realizacion_clusterizacion',
+    'G2': 'asignacion_de_recursos',
+    'G3': 'inyeccion_a_odoo',
 }
 
 class CategoriasForm(forms.Form):
@@ -358,6 +329,8 @@ class CategoriasForm(forms.Form):
     # Modelo
     modelo = forms.BooleanField(required=False, label="Modelo", widget=forms.CheckboxInput(attrs={'class':'form-check-input'}))
     realizacion_clusterizacion = forms.BooleanField(required=False, label="Realización de la clusterización", widget=forms.CheckboxInput(attrs={'class':'form-check-input'}))
+    asignacion_de_recursos = forms.BooleanField(required=False, label="Asignación de recursos", widget=forms.CheckboxInput(attrs={'class':'form-check-input'}))
+    inyeccion_a_odoo = forms.BooleanField(required=False, label="Inyecciones a Odoo", widget=forms.CheckboxInput(attrs={'class':'form-check-input'}))
 
     def get_field_by_code(self, code):
         field_name = CATEGORIAS_MAPPING.get(code)
@@ -414,6 +387,23 @@ class ProgramacionForm(forms.Form):
     )
     def get_field_by_code(self, code):
         field_name = PROGRAMACION_MAPPING.get(code)
+        if field_name:
+            return self[field_name]
+        return None
+
+ESCENARIOS_MAPPING = {
+    'A1': 'optimista',
+    'A2': 'media',
+    'A3': 'pesimista'
+}
+
+class EscenariosForm(forms.Form):
+    optimista = forms.BooleanField(required=False, label="Optimista", widget=forms.CheckboxInput(attrs={'class':'form-check-input'}))
+    media = forms.BooleanField(required=False, label="Media", widget=forms.CheckboxInput(attrs={'class':'form-check-input'}))
+    pesimista = forms.BooleanField(required=False, label="Pesimista", widget=forms.CheckboxInput(attrs={'class':'form-check-input'}))
+
+    def get_field_by_code(self, code):
+        field_name = ESCENARIOS_MAPPING.get(code)
         if field_name:
             return self[field_name]
         return None
