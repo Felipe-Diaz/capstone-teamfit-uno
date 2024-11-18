@@ -1,0 +1,42 @@
+Pasos para instalar el programa.
+
+Requisitos: 	-Tener descargado Python 3.10
+		-Tener instalado PostgreSQL y la aplicación PGAdmin 4.
+Este es un proyecto funcionando en Django, por lo que las instrucciones para permitir el funcionamiento del programa también pueden buscarse por otros medios
+---------------Creación de ambiente virtual y descarga de librerías---------------
+
+1.- Descargar la aplicación y descomprimir correctamente los archivos.
+
+2.- Crear un ambiente virtual para este proyecto. Este se puede crear utilizando comandos para crear la carpeta. El proceso puede variar entre Windows y Linux. Se considerará el proceso en Windows utilizando comandos para este sistema operativo. Debe crear una carpeta para contener el ambiente virutal. Luego utilizar el comando "Python -m venv nombre_carpeta" para crear el ambiente virtual en esta carpeta.
+
+3.- Utilizar un editor de código como Visual Studio Code y abrir la carpeta en que se encuentra el proyecto. Para posicionarse correctamente debe ser capaz de ver la carpeta core, teamfit, el archivo requirements.txt, entre otros. Una vez listo y con el proyecto funcionando en Visual Studio se debe activar el ambiente virtual. Se debe utilizar un Command Promt y utilizar los comandos hasta posicionarse en la carpeta del ambiente virtual. Debe ingresar a "Ambiente_Virtual/Scripts/" y luego escribir actívate para activar el ambiente virtual en este proyecto. Una vez listo es capaz de regresar a la carpeta principal del proyecto.
+
+4.- Realizar la descarga de librerías utilizando "pip install -r requirements" en Windows. Esto descargará las distintas librerías necesarias. Es necesario utilizar Python 3.10 para el correcto funcionamiento del sistema.
+
+---------------Creación de Base de datos utilizando respaldo---------------
+
+5.- Crear un usuario con permisos de administrador en PG Admin4. Este usuario debe llamarse "azure_pg_admin" sin las comillas.
+
+6.- Crear una base de datos llamada teamfit. Esta puede ser creada utilizando la interfaz gráfica o con comandos. Se recomienda crearla utilizando la interfaz gráfica.
+
+7.- Hacer click derecho en la base de datos creada anteriormente y restarura ("Restore") la base de datos y utilizar el script "Respaldo DB - PGAdmin.sql" que se encuentra en el GitHub. Debería recuperarse la base de datos si ha creado el usuario correctamente.
+
+---------------Startup de la aplicación---------------
+
+8.- Configurar el archivo Settings.py para conectarse a la base de datos creada anteriormente. Con el usuario, puerto y contraseña correspondientes.
+
+10.- Revisa que el Command Promt utilizado para la creación del ambiente esté posicionado en el mismo nivel que el proyecto en Visual Studio.
+
+11.- Realizar las migraciones utilizando el siguiente comando en Windows: "Python manage.py makemigrations".
+
+12.- Aplicar las migraciones utilizando el siguiente en windows "Python manage.py migrate --fake". Este comando permitirá realizar las migraciones sin reemplazar las tablas. Se recomienda realizar esto para evitar problemas con el Script de base de datos.
+
+13.- Iniciar el sistema utilizando el comando en Windows: "python manage.py runserver".
+
+14.- Iniciar en un web browser para acceder a la página "http://127.0.0.1:8000/". Se aconseja utilizar Chrome como navegador debido a ser el navegador en que se ha desarrollado.
+
+15.- Utilizar el sistema. Actualmente el usuario creado tiene las credenciales "Admin" como usuario y "Admin@123" como contraseña. En caso de no permitir el inicio de sesión o fallos del sistema, debe considerar la creación de un usuario utilizando el comando "python manage.py createsuperuser" para crear un usuario. Luego podrá ingresar al sitio web. En caso de requerir que este usuario tenga un perfil de usuario debe ser creado a través de una Query en la base de datos debido a que se ha utilizado comandos para la creación del usuario. 
+
+16.- Una vez haya logrado iniciar sesión correctamente el sistema será capaz de funcionar correctamente. Debe seguir el manual de usuario
+
+
